@@ -90,17 +90,6 @@ string ResolveIndicatorName()
    return name;
 }
 
-bool IsExternalIndicatorFileAvailable()
-{
-   string baseName = ResolveIndicatorName();
-   string dataPath = TerminalInfoString(TERMINAL_DATA_PATH);
-
-   string pathIndicators = dataPath + "/MQL5/Indicators/" + baseName + ".ex5";
-   string pathRoot       = dataPath + "/MQL5/" + baseName + ".ex5";
-
-   return (FileIsExist(pathIndicators) || FileIsExist(pathRoot));
-}
-
 void RemoveBuiltInMAsFromChart()
 {
    if(!InpHideBuiltInMAsOnChart)
@@ -114,7 +103,10 @@ void RemoveBuiltInMAsFromChart()
          continue;
 
       bool isMA = (StringFind(indName, "Moving Average", 0) >= 0)
-               || (StringFind(indName, "Adaptive Moving Average", 0) >= 0);
+               || (StringFind(indName, "Adaptive Moving Average", 0) >= 0)
+               || (StringFind(indName, "Média Móvel", 0) >= 0)
+               || (StringFind(indName, "Adaptativa", 0) >= 0)
+               || (StringFind(indName, "AMA", 0) >= 0);
 
       if(isMA)
          ChartIndicatorDelete(0, 0, indName);
@@ -125,12 +117,6 @@ bool AttachColorIndicatorToChart()
 {
    if(!InpShowColorIndicatorOnChart)
       return false;
-
-   if(!IsExternalIndicatorFileAvailable())
-   {
-      Print("Visual: arquivo do indicador não encontrado. Coloração no gráfico desativada.");
-      return false;
-   }
 
    int visualHandle = iCustom(
       _Symbol,
@@ -674,30 +660,22 @@ int OnInit()
 {
    g_useInternalSignal = false;
 
-   if(IsExternalIndicatorFileAvailable())
-   {
-      g_handle = iCustom(
-         _Symbol,
-         _Period,
-         ResolveIndicatorName(),
-         InpAMA_FastEMA,
-         InpAMA_SlowEMA,
-         InpAppliedPrice,
-         InpPeriodFast,
-         InpPeriodMid,
-         InpPeriodSlow,
-         InpBullColor,
-         InpBearColor,
-         InpNeutralColor,
-         false, // sempre candle fechado para evitar piscar
-         InpRecalcLookback
-      );
-   }
-   else
-   {
-      g_handle = INVALID_HANDLE;
-      Print("Arquivo do indicador externo não encontrado. Tentando sinal interno.");
-   }
+   g_handle = iCustom(
+      _Symbol,
+      _Period,
+      ResolveIndicatorName(),
+      InpAMA_FastEMA,
+      InpAMA_SlowEMA,
+      InpAppliedPrice,
+      InpPeriodFast,
+      InpPeriodMid,
+      InpPeriodSlow,
+      InpBullColor,
+      InpBearColor,
+      InpNeutralColor,
+      false,
+      InpRecalcLookback
+   );
 
    if(g_handle == INVALID_HANDLE)
    {
@@ -709,21 +687,15 @@ int OnInit()
 
       g_useInternalSignal = true;
       Print("Indicador externo indisponível. Usando fallback interno de sinal.");
-   }
 
-   if(InpUseIndicatorFallback)
-   {
       g_amaFastHandle = iAMA(_Symbol, _Period, InpPeriodFast, InpAMA_FastEMA, InpAMA_SlowEMA, 0, InpAppliedPrice);
       g_amaMidHandle  = iAMA(_Symbol, _Period, InpPeriodMid,  InpAMA_FastEMA, InpAMA_SlowEMA, 0, InpAppliedPrice);
       g_amaSlowHandle = iAMA(_Symbol, _Period, InpPeriodSlow, InpAMA_FastEMA, InpAMA_SlowEMA, 0, InpAppliedPrice);
 
       if(g_amaFastHandle == INVALID_HANDLE || g_amaMidHandle == INVALID_HANDLE || g_amaSlowHandle == INVALID_HANDLE)
       {
-         if(g_useInternalSignal)
-         {
-            Print("Falha ao criar handles iAMA para fallback interno.");
-            return INIT_FAILED;
-         }
+         Print("Falha ao criar handles iAMA para fallback interno.");
+         return INIT_FAILED;
       }
    }
 
@@ -756,6 +728,13 @@ void OnDeinit(const int reason)
 
 void OnTick()
 {
+   static bool s_initCleanupDone = false;
+   if(!s_initCleanupDone)
+   {
+      RemoveBuiltInMAsFromChart();
+      s_initCleanupDone = true;
+   }
+
    UpdateDayAnchor();
    UpdateModeFromPositions();
 
