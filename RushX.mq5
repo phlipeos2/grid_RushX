@@ -1,9 +1,12 @@
 ﻿//+------------------------------------------------------------------+
-//|                                              BullTrendGridEA.mq5 |
-//|                   Grid EA com gatilho do indicador Bull Trend    |
+//|                                                         RushX.mq5 |
+//|                          Robô exclusivo ATA | Auto Trading Alliance|
 //+------------------------------------------------------------------+
 #property strict
 #property version   "2.4"
+#property description "RushX - Robô exclusivo da ATA | Auto Trading Alliance"
+#property description "Desenvolvedor: Phelipe  |  +1 (385) 314-9098"
+#property description "Todos os direitos reservados."
 
 #include <Trade/Trade.mqh>
 
@@ -78,8 +81,8 @@ datetime g_lastGridOpenTime = 0;
 double   g_lastGridOpenPrice = 0.0;
 TradeMode g_lastGridOpenMode = MODE_NONE;
 
-string TP_LINE_NAME = "BTG_BASKET_TP";
-string SL_LINE_NAME = "BTG_BASKET_SL";
+string TP_LINE_NAME = "RX_BASKET_TP";
+string SL_LINE_NAME = "RX_BASKET_SL";
 
 string ResolveIndicatorName()
 {
@@ -541,10 +544,10 @@ bool OpenByMode(const TradeMode mode, const double lot)
    trade.SetDeviationInPoints(InpSlippagePoints);
 
    if(mode == MODE_BUY)
-      return trade.Buy(lot, _Symbol, 0.0, 0.0, 0.0, "BTG_GRID_BUY");
+      return trade.Buy(lot, _Symbol, 0.0, 0.0, 0.0, "RX_GRID_BUY");
 
    if(mode == MODE_SELL)
-      return trade.Sell(lot, _Symbol, 0.0, 0.0, 0.0, "BTG_GRID_SELL");
+      return trade.Sell(lot, _Symbol, 0.0, 0.0, 0.0, "RX_GRID_SELL");
 
    return false;
 }
