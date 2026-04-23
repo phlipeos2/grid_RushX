@@ -41,22 +41,21 @@ input int    InpStartMinute2            = 0;
 input int    InpEndHour2                = 23;
 input int    InpEndMinute2              = 59;
 
-input group "=== Indicador Bull Trend Color ==="
-input string             InpIndicatorName       = "Bull_Trend_Color"; // Nome do indicador .ex5 (sem extensão)
-input int                InpAMA_FastEMA         = 2;
-input int                InpAMA_SlowEMA         = 30;
-input ENUM_APPLIED_PRICE InpAppliedPrice        = PRICE_CLOSE;
-input int                InpPeriodFast          = 9;
-input int                InpPeriodMid           = 20;
-input int                InpPeriodSlow          = 200;
-input color              InpBullColor           = clrDodgerBlue;
-input color              InpBearColor           = clrRed;
-input color              InpNeutralColor        = C'128,128,128';
-input bool               InpColorCurrentBar     = false;
-input int                InpRecalcLookback      = 0;
-input bool               InpUseIndicatorFallback = true; // Usa fallback interno se iCustom falhar
-input bool               InpShowColorIndicatorOnChart = true; // Mostrar coloração no gráfico
-input bool               InpHideBuiltInMAsOnChart = true; // Ocultar médias móveis visíveis
+const string             InpIndicatorName             = "Bull_Trend_Color";
+const int                InpAMA_FastEMA               = 2;
+const int                InpAMA_SlowEMA               = 30;
+const ENUM_APPLIED_PRICE InpAppliedPrice              = PRICE_CLOSE;
+const int                InpPeriodFast                = 9;
+const int                InpPeriodMid                 = 20;
+const int                InpPeriodSlow                = 200;
+const color              InpBullColor                 = clrDodgerBlue;
+const color              InpBearColor                 = clrRed;
+const color              InpNeutralColor              = C'128,128,128';
+const bool               InpColorCurrentBar           = false;
+const int                InpRecalcLookback            = 0;
+const bool               InpUseIndicatorFallback      = true;
+const bool               InpShowColorIndicatorOnChart = true;
+const bool               InpHideBuiltInMAsOnChart     = true;
 
 enum TradeMode
 {
@@ -136,14 +135,10 @@ bool AttachColorIndicatorToChart()
    );
 
    if(visualHandle == INVALID_HANDLE)
-   {
-      Print("Visual: indicador de coloração não carregou: ", ResolveIndicatorName());
       return false;
-   }
 
    if(!ChartIndicatorAdd(0, 0, visualHandle))
    {
-      Print("Visual: falha ao anexar indicador de coloração no gráfico.");
       IndicatorRelease(visualHandle);
       return false;
    }
@@ -594,7 +589,6 @@ int ReadSignal()
          return -1;
 
       g_useInternalSignal = true;
-      Print("Falha em CopyBuffer do indicador externo. Ativando fallback interno de sinal.");
    }
 
    if(g_amaFastHandle == INVALID_HANDLE || g_amaMidHandle == INVALID_HANDLE || g_amaSlowHandle == INVALID_HANDLE)
@@ -680,23 +674,16 @@ int OnInit()
    if(g_handle == INVALID_HANDLE)
    {
       if(!InpUseIndicatorFallback)
-      {
-         Print("Falha ao carregar indicador externo e fallback desativado: ", ResolveIndicatorName());
          return INIT_FAILED;
-      }
 
       g_useInternalSignal = true;
-      Print("Indicador externo indisponível. Usando fallback interno de sinal.");
 
       g_amaFastHandle = iAMA(_Symbol, _Period, InpPeriodFast, InpAMA_FastEMA, InpAMA_SlowEMA, 0, InpAppliedPrice);
       g_amaMidHandle  = iAMA(_Symbol, _Period, InpPeriodMid,  InpAMA_FastEMA, InpAMA_SlowEMA, 0, InpAppliedPrice);
       g_amaSlowHandle = iAMA(_Symbol, _Period, InpPeriodSlow, InpAMA_FastEMA, InpAMA_SlowEMA, 0, InpAppliedPrice);
 
       if(g_amaFastHandle == INVALID_HANDLE || g_amaMidHandle == INVALID_HANDLE || g_amaSlowHandle == INVALID_HANDLE)
-      {
-         Print("Falha ao criar handles iAMA para fallback interno.");
          return INIT_FAILED;
-      }
    }
 
    trade.SetExpertMagicNumber(InpMagic);
